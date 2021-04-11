@@ -1,4 +1,4 @@
-module github.com/go-httpproxy/httpproxy
+module github.com/mcku/httpproxy
 
 go 1.15
 
