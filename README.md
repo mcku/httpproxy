@@ -1,3 +1,35 @@
+# proxyWithPrefix -- simple proxy for developers based on go-httpproxy/httpproxy
+
+## Installation
+
+go get -u github.com/mcku/httpproxy/cmd/proxy-with-prefix
+
+## Usage
+
+For some reason you need to use a proxy to reach to some external service.
+
+However, you have an http client, app, test, etc which is not proxy-aware. 
+
+Or maybe the client has proxy support bu it is YOU who just doesn't want to fiddle with proxy settings and reset back to no-proxy settings when done with the temporary work.
+
+So a dumb proxy is needed which takes URLs in the form of 
+
+    http://proxy:8080/https://yourrealhost.com/whatever
+
+where the proxy forwards the original request to 
+
+    https://yourrealhost.com/whatever
+
+without any configuration change at the client. The only thing client needs to do is to use the prefixed URL.
+
+In order to run the proxy with prefix:
+
+    ./proxy-with-prefix
+
+That's it. Listens at port 8080.
+
+Enjoy!
+
 # Go HTTP proxy server library
 
 [![GoDoc](https://godoc.org/github.com/go-httpproxy/httpproxy?status.svg)](https://godoc.org/github.com/go-httpproxy/httpproxy)

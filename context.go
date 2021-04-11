@@ -5,9 +5,12 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/base64"
+	"fmt"
 	"io"
+	"io/ioutil"
 	"net"
 	"net/http"
+	"net/url"
 	"strings"
 	"sync"
 )
@@ -328,7 +331,27 @@ func (ctx *Context) doMitm() (w http.ResponseWriter, r *http.Request) {
 }
 
 func (ctx *Context) doRequest(w http.ResponseWriter, r *http.Request) (bool, error) {
+	fmt.Printf("doRequest: url path: %v\n", r.URL)
 	if !r.URL.IsAbs() {
+
+		fmt.Printf("doRequest: original request Header: %s\n", r.Header)
+		fmt.Printf("doRequest: original request Host  : %s\n", r.Host)
+		fmt.Printf("doRequest: original request ReqURI: %s\n", r.RequestURI)
+		fmt.Printf("doRequest: original request URL   : %s\n", r.URL)
+
+		if strings.HasPrefix(r.URL.Path, "/https://") || strings.HasPrefix(r.URL.Path, "/http://") {
+			fmt.Printf("doRequest: url path is a url\n")
+			newUrl, err := url.Parse(fmt.Sprintf("%s", r.URL)[1:])
+			fmt.Printf("doRequest: newUrl %s\n", newUrl)
+
+			if err != nil {
+				ctx.doError("Request", ErrResponseWrite, fmt.Errorf("could not convert url into usable form"))
+			}
+			r.URL = newUrl
+			r.Host = newUrl.Host
+			return ctx.doRequest(w, r)
+		}
+
 		if r.Body != nil {
 			defer r.Body.Close()
 		}
@@ -342,6 +365,10 @@ func (ctx *Context) doRequest(w http.ResponseWriter, r *http.Request) (bool, err
 	if ctx.Prx.OnRequest == nil {
 		return false, nil
 	}
+	fmt.Printf("\n")
+	body, _ := ioutil.ReadAll(r.Body)
+	fmt.Printf("doRequest: request body %s\n", body)
+	fmt.Printf("\n")
 	resp := ctx.onRequest(r)
 	if resp == nil {
 		return false, nil
@@ -379,6 +406,10 @@ func (ctx *Context) doResponse(w http.ResponseWriter, r *http.Request) error {
 	if ctx.Prx.OnResponse != nil {
 		ctx.onResponse(r, resp)
 	}
+	fmt.Printf("\n")
+	body, _ := ioutil.ReadAll(resp.Body)
+	fmt.Printf("doResp: resp body %s\n", body)
+	fmt.Printf("\n")
 	resp.Request = r
 	resp.TransferEncoding = nil
 	if ctx.ConnectAction == ConnectMitm && ctx.Prx.MitmChunked {

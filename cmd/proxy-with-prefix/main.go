@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/go-httpproxy/httpproxy"
+	"github.com/mcku/httpproxy"
 )
 
 func OnError(ctx *httpproxy.Context, where string,
